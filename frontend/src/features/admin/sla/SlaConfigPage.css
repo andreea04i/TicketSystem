@@ -1,0 +1,135 @@
+.sla-page {
+  min-height: 100vh;
+  padding: 48px 20px;
+  background: #f4f7fb;
+  color: #172033;
+  box-sizing: border-box;
+}
+
+.sla-container {
+  width: min(1050px, 100%);
+  margin: 0 auto;
+}
+
+.sla-header {
+  margin-bottom: 32px;
+}
+
+.sla-header h1 {
+  margin: 4px 0 8px;
+  font-size: 36px;
+}
+
+.sla-header p {
+  margin: 0;
+  color: #5b6579;
+}
+
+.sla-eyebrow {
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #3157b7 !important;
+}
+
+.sla-grid {
+  display: grid;
+  grid-template-columns:
+    repeat(auto-fit, minmax(220px, 1fr));
+  gap: 20px;
+}
+
+.sla-card {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 24px;
+  background: white;
+  border: 1px solid #dce2ec;
+  border-radius: 14px;
+  box-shadow: 0 8px 25px rgba(23, 32, 51, 0.06);
+}
+
+.sla-priority {
+  display: inline-block;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.sla-priority-low {
+  background: #e7f7ed;
+  color: #176b39;
+}
+
+.sla-priority-medium {
+  background: #fff4ce;
+  color: #815b00;
+}
+
+.sla-priority-high {
+  background: #ffe4ce;
+  color: #964000;
+}
+
+.sla-priority-critical {
+  background: #ffe0e0;
+  color: #a61b1b;
+}
+
+.sla-current-value {
+  margin: 16px 0 0;
+  color: #5b6579;
+}
+
+.sla-card label {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.sla-input-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.sla-input-row input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid #bbc4d3;
+  border-radius: 8px;
+  font-size: 16px;
+}
+
+.sla-card button {
+  padding: 11px 16px;
+  border: 0;
+  border-radius: 8px;
+  background: #3157b7;
+  color: white;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.sla-card button:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.sla-message {
+  margin-bottom: 20px;
+  padding: 12px 16px;
+  border-radius: 8px;
+}
+
+.sla-error {
+  background: #ffe2e2;
+  color: #8d1616;
+}
+
+.sla-success {
+  background: #e1f5e8;
+  color: #176b39;
+}
