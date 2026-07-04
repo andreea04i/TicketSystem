@@ -1,0 +1,126 @@
+.agent-dashboard {
+    min-height: 100vh;
+    padding: 48px 56px;
+    background: #f4f7fc;
+    color: #172033;
+    font-family: Arial, sans-serif;
+}
+
+.agent-dashboard h1 {
+    margin: 0 0 8px;
+    font-size: 38px;
+}
+
+.agent-dashboard-subtitle {
+    margin-bottom: 28px;
+    color: #65708a;
+}
+
+.agent-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 18px;
+    margin-bottom: 24px;
+    padding: 20px;
+    background: white;
+    border: 1px solid #dce3ef;
+    border-radius: 14px;
+}
+
+.agent-filters label {
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    font-weight: 600;
+}
+
+.agent-filters select {
+    min-width: 160px;
+    padding: 10px 12px;
+    border: 1px solid #bdc8dc;
+    border-radius: 8px;
+    background: white;
+    font-size: 14px;
+}
+
+.tickets-table-wrapper {
+    overflow-x: auto;
+    background: white;
+    border: 1px solid #dce3ef;
+    border-radius: 14px;
+    box-shadow: 0 8px 24px rgba(23, 32, 51, 0.06);
+}
+
+.tickets-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.tickets-table th,
+.tickets-table td {
+    padding: 16px 18px;
+    text-align: left;
+    border-bottom: 1px solid #e7ebf2;
+}
+
+.tickets-table th {
+    background: #f8faff;
+    color: #536078;
+    font-size: 13px;
+    text-transform: uppercase;
+}
+
+.tickets-table tbody tr:hover {
+    background: #f8faff;
+}
+
+.ticket-priority,
+.ticket-status,
+.ticket-sla {
+    display: inline-block;
+    padding: 6px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.priority-critical {
+    background: #ffe0e0;
+    color: #b42323;
+}
+
+.priority-high {
+    background: #ffe8d5;
+    color: #ad4e00;
+}
+
+.priority-medium {
+    background: #fff2c7;
+    color: #8a6500;
+}
+
+.priority-low {
+    background: #dcf6e7;
+    color: #187747;
+}
+
+.ticket-status {
+    background: #e8eefc;
+    color: #3457a8;
+}
+
+.sla-breached {
+    background: #ffe0e0;
+    color: #b42323;
+}
+
+.sla-ok {
+    background: #dcf6e7;
+    color: #187747;
+}
+
+.empty-message {
+    padding: 28px;
+    text-align: center;
+    color: #65708a;
+}
