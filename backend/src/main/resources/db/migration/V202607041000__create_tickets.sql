@@ -1,0 +1,21 @@
+CREATE TABLE tickets (
+    id BIGSERIAL PRIMARY KEY,
+
+    ticket_number VARCHAR(20) NOT NULL UNIQUE,
+
+    title VARCHAR(180) NOT NULL,
+
+    description TEXT NOT NULL,
+
+    category VARCHAR(30) NOT NULL,
+
+    priority VARCHAR(20) NOT NULL,
+
+    status VARCHAR(30) NOT NULL,
+
+    sla_breached BOOLEAN NOT NULL DEFAULT FALSE,
+
+    created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
