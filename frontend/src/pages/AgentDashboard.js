@@ -1,12 +1,19 @@
 import { useEffect, useState } from "react";
-import { getAgentTickets } from "../api/agentTicketsApi";
+import {
+    assignTicket,
+    changeTicketStatus,
+    escalateTicket,
+    getAgentTickets,
+} from "../api/agentTicketsApi";
 import "./AgentDashboard.css";
 
 function AgentDashboard()
 {
+    const CURRENT_AGENT_ID = 1;
     const [tickets, setTickets] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
+    const [actionTicketId, setActionTicketId] = useState(null);
 
     const [priorityFilter, setPriorityFilter] = useState("ALL");
     const [statusFilter, setStatusFilter] = useState("ALL");
@@ -25,6 +32,96 @@ function AgentDashboard()
         }
         loadTickets();
     }, [])
+
+    function updateTicketInList(updatedTicket) {
+        if (
+            updatedTicket.status === "RESOLVED" ||
+            updatedTicket.status === "CLOSED"
+        ) {
+            setTickets((currentTickets) =>
+                currentTickets.filter(
+                    (ticket) => ticket.id !== updatedTicket.id
+                )
+            );
+
+            return;
+        }
+
+        setTickets((currentTickets) =>
+            currentTickets.map((ticket) =>
+                ticket.id === updatedTicket.id
+                    ? updatedTicket
+                    : ticket
+            )
+        );
+    }
+
+    async function handleAssign(ticketId) {
+        try {
+            setError("");
+            setActionTicketId(ticketId);
+
+            const updateTicket = await assignTicket(
+                ticketId,
+                CURRENT_AGENT_ID
+            );
+
+            updateTicketInList(updateTicket);
+        } catch (requestError) {
+            setError(requestError.message);
+        } finally {
+            setActionTicketId(null);
+        }
+    }
+
+    async function handleStatusChange(ticketId, newStatus) {
+        try {
+            setError("");
+            setActionTicketId(ticketId);
+
+            const updatedTicket = await changeTicketStatus(
+                ticketId,
+                newStatus
+            );
+
+            updateTicketInList(updatedTicket);
+        } catch (requestError) {
+            setError(requestError.message);
+        } finally {
+            setActionTicketId(null);
+        }
+    }
+
+    async function handleEscalate(ticketId) {
+        const reason = window.prompt(
+            "Scrie motivul escaladarii:"
+        );
+
+        if (reason == null) {
+            return;
+        }
+
+        if (!reason.trim()) {
+            setError("Motivul escaladarii este obligatoriu.");
+            return;
+        }
+
+        try {
+            setError("");
+            setActionTicketId(ticketId);
+
+            const updatedTicket = await escalateTicket(
+                ticketId,
+                reason.trim()
+            );
+
+            updateTicketInList(updatedTicket);
+        } catch (requestError) {
+            setError(requestError.message);
+        } finally {
+            setActionTicketId(null);
+        }
+    }
 
     const filteredTickets = tickets.filter((ticket) => {
         const matchesPriority = 
@@ -46,14 +143,6 @@ function AgentDashboard()
         );
     }
 
-    if (error) {
-        return (
-            <main className="agent-dashboard">
-                <p>{error}</p>
-            </main>
-        );
-    }
-
     return (
         <main className="agent-dashboard">
             <h1>Agent Dashboard</h1>
@@ -61,6 +150,12 @@ function AgentDashboard()
             <p className="agent-dashboard-subtitle">
                 {filteredTickets.length} din {tickets.length} tichete active
             </p>
+
+            {error && (
+                <p className="agent-action-error">
+                    {error}
+                </p>
+            )}
 
             <div className="agent-filters">
                 <label>
@@ -120,7 +215,9 @@ function AgentDashboard()
                             <th>Categorie</th>
                             <th>Prioritate</th>
                             <th>Status</th>
+                            <th>Agent</th>
                             <th>SLA</th>
+                            <th>Acțiuni</th>
                         </tr>
                     </thead>
 
@@ -148,6 +245,12 @@ function AgentDashboard()
                                 </td>
 
                                 <td>
+                                    {ticket.assignedAgentId
+                                        ? `Agent #${ticket.assignedAgentId}`
+                                        : "Neatribuit"}
+                                </td>
+
+                                <td>
                                     <span
                                         className={
                                             ticket.slaBreached
@@ -159,6 +262,69 @@ function AgentDashboard()
                                             ? "Depășit"
                                             : "În termen"}
                                     </span>
+                                </td>
+
+                                <td>
+                                    <div className="ticket-actions">
+                                        <button
+                                            type="button"
+                                            onClick={() => handleAssign(ticket.id)}
+                                            disabled={
+                                                ticket.assignedAgentId !== null ||
+                                                actionTicketId === ticket.id
+                                            }
+                                        >
+                                            {ticket.assignedAgentId
+                                                ? "Preluat"
+                                                : "Preia"}
+                                        </button>
+
+                                        <select
+                                            value={ticket.status}
+                                            disabled={actionTicketId === ticket.id}
+                                            onChange={(event) =>
+                                                handleStatusChange(
+                                                    ticket.id,
+                                                    event.target.value
+                                                )
+                                            }
+                                        >
+                                            <option value="OPEN">Open</option>
+                                            <option value="IN_PROGRESS">
+                                                In progress
+                                            </option>
+
+                                            <option value="ESCALATED" disabled>
+                                                Escalated
+                                            </option>
+
+                                            <option value="RESOLVED">
+                                                Resolved
+                                            </option>
+
+                                            <option value="CLOSED">
+                                                Closed
+                                            </option>
+                                        </select>
+
+                                        <button
+                                            type="button"
+                                            className="escalate-button"
+                                            onClick={() => handleEscalate(ticket.id)}
+                                            disabled={
+                                                ticket.status === "ESCALATED" ||
+                                                actionTicketId === ticket.id
+                                            }
+                                        >
+                                            Escaladează
+                                        </button>
+                                    </div>
+
+                                    {ticket.escalationReason && (
+                                        <p className="escalation-reason">
+                                            Motiv: {ticket.escalationReason}
+                                        </p>
+                                    )}
                                 </td>
                             </tr>
                         ))}

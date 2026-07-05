@@ -1,13 +1,22 @@
 package com.example.backend.ticket.controller;
 
-import com.example.backend.ticket.dto.AgentTicketResponse;
-import com.example.backend.ticket.service.AgentTicketService;
+import java.util.List;
+
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.bind.annotation.CrossOrigin;
 
-import java.util.List;
+import com.example.backend.ticket.dto.AgentTicketResponse;
+import com.example.backend.ticket.dto.AssignTicketRequest;
+import com.example.backend.ticket.dto.ChangeTicketStatusRequest;
+import com.example.backend.ticket.dto.EscalateTicketRequest;
+import com.example.backend.ticket.service.AgentTicketService;
+
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/agent/tickets")
@@ -22,5 +31,38 @@ public class AgentTicketController {
     @GetMapping
     public List<AgentTicketResponse> getActiveTickets() {
         return agentTicketService.getActiveTickets();
+    }
+
+    @PutMapping("/{ticketId}/assign")
+    public AgentTicketResponse assignTicket(
+        @PathVariable Long ticketId,
+        @Valid @RequestBody AssignTicketRequest request
+    ) {
+        return agentTicketService.assignTicket(
+            ticketId,
+            request.agentId()
+        );
+    }
+
+    @PutMapping("/{ticketId}/status")
+    public AgentTicketResponse changeStatus(
+        @PathVariable Long ticketId,
+        @Valid @RequestBody ChangeTicketStatusRequest request
+    ) {
+        return agentTicketService.changeStatus(
+            ticketId, 
+            request.status()
+        );
+    }
+
+    @PutMapping("/{ticketId}/escalate")
+    public AgentTicketResponse escalateTicket(
+        @PathVariable Long ticketId,
+        @Valid @RequestBody EscalateTicketRequest request
+    ) {
+        return agentTicketService.escalateTicket(
+            ticketId, 
+            request.reason()
+        );
     }
 }
