@@ -1,4 +1,4 @@
-package com.example.backend.sla.config;
+/*package com.example.backend.sla.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -21,4 +21,4 @@ public class SlaDevSecurityConfig {
             .authorizeHttpRequests(authorize -> authorize.requestMatchers("/api/admin/sla/**").permitAll().anyRequest().authenticated());
         return http.build();
     }
-}
+}*/
