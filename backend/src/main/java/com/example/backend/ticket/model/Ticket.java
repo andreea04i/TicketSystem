@@ -1,78 +1,94 @@
 package com.example.backend.ticket.model;
 
 import java.time.Instant;
+import java.util.Objects;
 
 import com.example.backend.common.model.TicketCategory;
 import com.example.backend.common.model.TicketPriority;
 import com.example.backend.common.model.TicketStatus;
+import com.example.backend.user.model.User;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 import jakarta.persistence.Table;
 
-
 @Entity
 @Table(name = "tickets")
 public class Ticket {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column(
-        name = "ticket_number",
-        nullable = false,
-        unique = true,
-        length = 20
+            name = "ticket_number",
+            nullable = false,
+            unique = true,
+            length = 20
     )
     private String ticketNumber;
 
     @Column(
-        name = "title",
-        nullable = false,
-        length = 100
+            name = "title",
+            nullable = false,
+            length = 180
     )
     private String title;
 
     @Column(
-        name = "description",
-        nullable = false,
-        columnDefinition = "TEXT"
+            name = "description",
+            nullable = false,
+            columnDefinition = "TEXT"
     )
     private String description;
 
     @Enumerated(EnumType.STRING)
     @Column(
-        name = "category",
-        nullable = false,
-        length = 30
+            name = "category",
+            nullable = false,
+            length = 30
     )
     private TicketCategory category;
 
     @Enumerated(EnumType.STRING)
     @Column(
-        name = "priority",
-        nullable = false,
-        length = 20
+            name = "priority",
+            nullable = false,
+            length = 20
     )
     private TicketPriority priority;
 
     @Enumerated(EnumType.STRING)
     @Column(
-        name = "status",
-        nullable = false,
-        length = 30
+            name = "status",
+            nullable = false,
+            length = 30
     )
     private TicketStatus status;
 
-    @Column(name = "assigned_agent_id")
-    private Long assignedAgentId;
+    @ManyToOne(
+            fetch = FetchType.LAZY,
+            optional = false
+    )
+    @JoinColumn(
+            name = "created_by_id",
+            nullable = false
+    )
+    private User createdBy;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "assigned_agent_id")
+    private User assignedAgent;
 
     @Column(
         name = "escalation_reason",
@@ -81,38 +97,112 @@ public class Ticket {
     private String escalationReason;
 
     @Column(
-        name = "sla_breached",
-        nullable = false
+            name = "sla_breached",
+            nullable = false
     )
     private boolean slaBreached;
-    
+
     @Column(
-        name = "created_at",
-        nullable = false,
-        updatable = false
+            name = "created_at",
+            nullable = false,
+            updatable = false
     )
     private Instant createdAt;
 
     @Column(
-        name = "updated_at",
-        nullable = false
+            name = "updated_at",
+            nullable = false
     )
     private Instant updatedAt;
 
+    @Column(name = "resolved_at")
+    private Instant resolvedAt;
+
+    @Column(name = "closed_at")
+    private Instant closedAt;
+
     protected Ticket() {
-        // Default constructor for JPA
+        // Constructor necesar pentru JPA.
+    }
+
+    public static Ticket create(
+            String ticketNumber,
+            String title,
+            String description,
+            TicketCategory category,
+            TicketPriority priority,
+            User createdBy
+    ) {
+        Ticket ticket = new Ticket();
+
+        ticket.ticketNumber =
+                Objects.requireNonNull(ticketNumber);
+
+        ticket.title =
+                Objects.requireNonNull(title);
+
+        ticket.description =
+                Objects.requireNonNull(description);
+
+        ticket.category =
+                Objects.requireNonNull(category);
+
+        ticket.priority =
+                Objects.requireNonNull(priority);
+
+        ticket.createdBy =
+                Objects.requireNonNull(createdBy);
+
+        ticket.status = TicketStatus.OPEN;
+        ticket.slaBreached = false;
+
+        return ticket;
+    }
+
+    public void changeStatus(TicketStatus newStatus) {
+        status = Objects.requireNonNull(newStatus);
+
+        Instant now = Instant.now();
+
+        if (newStatus == TicketStatus.RESOLVED
+                && resolvedAt == null) {
+            resolvedAt = now;
+        }
+
+        if (newStatus == TicketStatus.CLOSED
+                && closedAt == null) {
+            closedAt = now;
+        }
+    }
+
+    public void assignTo(User agent) {
+        assignedAgent = Objects.requireNonNull(agent);
+
+        if (status == TicketStatus.OPEN) {
+            status = TicketStatus.IN_PROGRESS;
+        }
+    }
+
+    public void escalate(String reason) {
+        status = TicketStatus.ESCALATED;
+        escalationReason = Objects.requireNonNull(reason).trim();
     }
 
     @PrePersist
     void beforeInsert() {
         Instant now = Instant.now();
+
+        if (status == null) {
+            status = TicketStatus.OPEN;
+        }
+
         createdAt = now;
         updatedAt = now;
     }
 
     @PreUpdate
     void beforeUpdate() {
-        updatedAt = Instant.now();  
+        updatedAt = Instant.now();
     }
 
     public Long getId() {
@@ -143,8 +233,18 @@ public class Ticket {
         return status;
     }
 
+    public User getCreatedBy() {
+        return createdBy;
+    }
+
+    public User getAssignedAgent() {
+        return assignedAgent;
+    }
+
     public Long getAssignedAgentId() {
-        return assignedAgentId;
+        return assignedAgent == null
+                ? null
+                : assignedAgent.getId();
     }
 
     public String getEscalationReason() {
@@ -163,20 +263,11 @@ public class Ticket {
         return updatedAt;
     }
 
-    public void assignTo(Long agentId) {
-        this.assignedAgentId = agentId;
-
-        if (this.status == TicketStatus.OPEN) {
-            this.status = TicketStatus.IN_PROGRESS;
-        }
+    public Instant getResolvedAt() {
+        return resolvedAt;
     }
 
-    public void changeStatus(TicketStatus newStatus) {
-        this.status = newStatus;
-    }
-
-    public void escalate(String reason) {
-        this.status = TicketStatus.ESCALATED;
-        this.escalationReason = reason;
+    public Instant getClosedAt() {
+        return closedAt;
     }
 }
