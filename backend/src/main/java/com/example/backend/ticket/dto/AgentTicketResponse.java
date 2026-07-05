@@ -13,6 +13,8 @@ public record AgentTicketResponse (
     TicketCategory category,
     TicketPriority priority,
     TicketStatus status,
+    Long assignedAgentId,
+    String escalationReason,
     boolean slaBreached,
     Instant createdAt,
     Instant updatedAt

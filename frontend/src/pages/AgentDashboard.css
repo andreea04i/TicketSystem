@@ -124,3 +124,59 @@
     text-align: center;
     color: #65708a;
 }
+
+.agent-action-error {
+    margin-bottom: 20px;
+    padding: 12px 16px;
+    border: 1px solid #f1b7b7;
+    border-radius: 8px;
+    background: #fff0f0;
+    color: #a52828;
+}
+
+.ticket-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-width: 145px;
+}
+
+.ticket-actions button,
+.ticket-actions select {
+    padding: 8px 10px;
+    border: 1px solid #bdc8dc;
+    border-radius: 7px;
+    font-size: 13px;
+}
+
+.ticket-actions button {
+    border: none;
+    background: #355fc4;
+    color: white;
+    cursor: pointer;
+}
+
+.ticket-actions button:hover:not(:disabled) {
+    background: #294da8;
+}
+
+.ticket-actions button:disabled {
+    cursor: not-allowed;
+    opacity: 0.55;
+}
+
+.ticket-actions .escalate-button {
+    background: #c15a2c;
+}
+
+.ticket-actions .escalate-button:hover:not(:disabled) {
+    background: #a64720;
+}
+
+.escalation-reason {
+    max-width: 180px;
+    margin: 8px 0 0;
+    color: #8a4a1f;
+    font-size: 12px;
+    line-height: 1.4;
+}

@@ -71,6 +71,15 @@ public class Ticket {
     )
     private TicketStatus status;
 
+    @Column(name = "assigned_agent_id")
+    private Long assignedAgentId;
+
+    @Column(
+        name = "escalation_reason",
+        columnDefinition = "TEXT"
+    )
+    private String escalationReason;
+
     @Column(
         name = "sla_breached",
         nullable = false
@@ -134,6 +143,14 @@ public class Ticket {
         return status;
     }
 
+    public Long getAssignedAgentId() {
+        return assignedAgentId;
+    }
+
+    public String getEscalationReason() {
+        return escalationReason;
+    }
+
     public boolean isSlaBreached() {
         return slaBreached;
     }
@@ -144,5 +161,22 @@ public class Ticket {
 
     public Instant getUpdatedAt() {
         return updatedAt;
+    }
+
+    public void assignTo(Long agentId) {
+        this.assignedAgentId = agentId;
+
+        if (this.status == TicketStatus.OPEN) {
+            this.status = TicketStatus.IN_PROGRESS;
+        }
+    }
+
+    public void changeStatus(TicketStatus newStatus) {
+        this.status = newStatus;
+    }
+
+    public void escalate(String reason) {
+        this.status = TicketStatus.ESCALATED;
+        this.escalationReason = reason;
     }
 }
