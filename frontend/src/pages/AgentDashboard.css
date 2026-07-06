@@ -180,3 +180,11 @@
     font-size: 12px;
     line-height: 1.4;
 }
+
+.ticket-actions .details-button {
+    background: #536078;
+}
+
+.ticket-actions .details-button:hover:not(:disabled) {
+    background: #3e485b;
+}
