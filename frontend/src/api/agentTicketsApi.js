@@ -1,9 +1,34 @@
 const AGENT_TICKETS_URL =
     "http://localhost:8080/api/agent/tickets";
 
+
+function getAccessToken() {
+    const token = localStorage.getItem("accessToken");
+
+    if (!token) {
+        throw new Error(
+            "Nu exista un token de autentificare."
+        );
+    }
+
+    return token;
+}
+
+function createHeaders(hasJsonBody = false) {
+    const headers = {
+        Authorization: `Bearer ${getAccessToken()}`,
+    };
+
+    if (hasJsonBody) {
+        headers["Content-Type"] = "application/json";
+    }
+
+    return headers;
+}
+
 async function handleResponse(response) {
     if (!response.ok) {
-        let message = `Crearea a esuat. Status ${response.status}`;
+        let message = `Cererea a esuat. Status ${response.status}`;
 
         try {
             const errorData = await response.json();
@@ -11,6 +36,7 @@ async function handleResponse(response) {
             message =
                 errorData.detail ||
                 errorData.message ||
+                errorData.error ||
                 message;
         } catch {
             // Raspunsul nu contine JSON
@@ -23,7 +49,16 @@ async function handleResponse(response) {
 }
 
 export async function getAgentTickets() {
-    const response = await fetch(AGENT_TICKETS_URL);
+    const response = await fetch(AGENT_TICKETS_URL, { headers: createHeaders(),});
+
+    return handleResponse(response);
+}
+
+export async function getAgentTicketDetails(ticketId) {
+    const response = await fetch(
+        `${AGENT_TICKETS_URL}/${ticketId}`,
+        { headers: createHeaders(),}
+    );
 
     return handleResponse(response);
 }
@@ -33,9 +68,7 @@ export async function assignTicket(ticketId, agentId) {
         `${AGENT_TICKETS_URL}/${ticketId}/assign`,
         {
             method: "PUT",
-            headers: {
-                "Content-Type": "application/json",
-            },
+            headers: createHeaders(true),
             body: JSON.stringify({
                 agentId,
             }),
@@ -50,9 +83,7 @@ export async function changeTicketStatus(ticketId, status) {
         `${AGENT_TICKETS_URL}/${ticketId}/status`,
         {
             method: "PUT",
-            headers: {
-                "Content-Type": "application/json",
-            },
+            headers: createHeaders(true),
             body: JSON.stringify({
                 status,
             }),
@@ -67,9 +98,7 @@ export async function escalateTicket(ticketId, reason) {
         `${AGENT_TICKETS_URL}/${ticketId}/escalate`,
         {
             method: "PUT",
-            headers: {
-                "Content-Type": "application/json", 
-            },
+            headers: createHeaders(true),
             body: JSON.stringify({
                 reason,
             }),

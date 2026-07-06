@@ -17,6 +17,7 @@ import com.example.backend.ticket.repository.TicketRepository;
 import com.example.backend.user.model.Role;
 import com.example.backend.user.model.User;
 import com.example.backend.user.repository.UserRepository;
+import com.example.backend.ticket.dto.AgentTicketDetailsResponse;
 
 @Service
 @Transactional(readOnly = true)
@@ -59,6 +60,14 @@ public class AgentTicketService {
                 )
                 .map(this::toResponse)
                 .toList();
+    }
+
+    public AgentTicketDetailsResponse getTicketDetails(
+        Long ticketId
+    ) {
+        Ticket ticket = getTicketOrThrow(ticketId);
+
+        return toDetailsResponse(ticket);
     }
 
     @Transactional
@@ -158,6 +167,42 @@ public class AgentTicketService {
                 ticket.isSlaBreached(),
                 ticket.getCreatedAt(),
                 ticket.getUpdatedAt()
+        );
+    }
+
+    private AgentTicketDetailsResponse toDetailsResponse(
+        Ticket ticket
+    ) {
+        User createdBy = ticket.getCreatedBy();
+        User assignedAgent = ticket.getAssignedAgent();
+
+        return new AgentTicketDetailsResponse(
+                ticket.getId(),
+                ticket.getTicketNumber(),
+                ticket.getTitle(),
+                ticket.getDescription(),
+
+                ticket.getCategory(),
+                ticket.getPriority(),
+                ticket.getStatus(),
+
+                createdBy.getId(),
+                createdBy.getFullName(),
+                createdBy.getEmail(),
+
+                assignedAgent == null ? null : assignedAgent.getId(),
+
+                assignedAgent == null ? null : assignedAgent.getFullName(),
+
+                assignedAgent == null ? null : assignedAgent.getEmail(),
+
+                ticket.getEscalationReason(),
+                ticket.isSlaBreached(),
+
+                ticket.getCreatedAt(),
+                ticket.getUpdatedAt(),
+                ticket.getResolvedAt(),
+                ticket.getClosedAt()
         );
     }
 

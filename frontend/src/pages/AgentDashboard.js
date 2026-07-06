@@ -7,9 +7,9 @@ import {
 } from "../api/agentTicketsApi";
 import "./AgentDashboard.css";
 
-function AgentDashboard()
+function AgentDashboard({ onOpenTicket})
 {
-    const CURRENT_AGENT_ID = 1;
+    const CURRENT_AGENT_ID = Number( localStorage.getItem("userId"));
     const [tickets, setTickets] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
@@ -266,6 +266,15 @@ function AgentDashboard()
 
                                 <td>
                                     <div className="ticket-actions">
+                                        <button
+                                            type="button"
+                                            className="details-button"
+                                            onClick={() => onOpenTicket(ticket.id)}
+                                            disabled={actionTicketId === ticket.id}
+                                        >
+                                            Detalii
+                                        </button>
+
                                         <button
                                             type="button"
                                             onClick={() => handleAssign(ticket.id)}

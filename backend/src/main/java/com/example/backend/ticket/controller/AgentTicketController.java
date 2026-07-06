@@ -15,6 +15,7 @@ import com.example.backend.ticket.dto.AssignTicketRequest;
 import com.example.backend.ticket.dto.ChangeTicketStatusRequest;
 import com.example.backend.ticket.dto.EscalateTicketRequest;
 import com.example.backend.ticket.service.AgentTicketService;
+import com.example.backend.ticket.dto.AgentTicketDetailsResponse;
 
 import jakarta.validation.Valid;
 
@@ -31,6 +32,13 @@ public class AgentTicketController {
     @GetMapping
     public List<AgentTicketResponse> getActiveTickets() {
         return agentTicketService.getActiveTickets();
+    }
+
+    @GetMapping("/{ticketId}")
+    public AgentTicketDetailsResponse getTicketDetails(
+        @PathVariable Long ticketId
+    ) {
+        return agentTicketService.getTicketDetails(ticketId);
     }
 
     @PutMapping("/{ticketId}/assign")
