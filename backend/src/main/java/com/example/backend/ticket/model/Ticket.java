@@ -1,13 +1,26 @@
 package com.example.backend.ticket.model;
 
+import java.time.Instant;
+import java.util.Objects;
+
 import com.example.backend.common.model.TicketCategory;
 import com.example.backend.common.model.TicketPriority;
 import com.example.backend.common.model.TicketStatus;
 import com.example.backend.user.model.User;
-import jakarta.persistence.*;
 
-import java.time.Instant;
-import java.util.Objects;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreUpdate;
+import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "tickets")
@@ -76,6 +89,12 @@ public class Ticket {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "assigned_agent_id")
     private User assignedAgent;
+
+    @Column(
+        name = "escalation_reason",
+        columnDefinition = "TEXT"
+    )
+    private String escalationReason;
 
     @Column(
             name = "sla_breached",
@@ -158,6 +177,15 @@ public class Ticket {
 
     public void assignTo(User agent) {
         assignedAgent = Objects.requireNonNull(agent);
+
+        if (status == TicketStatus.OPEN) {
+            status = TicketStatus.IN_PROGRESS;
+        }
+    }
+
+    public void escalate(String reason) {
+        status = TicketStatus.ESCALATED;
+        escalationReason = Objects.requireNonNull(reason).trim();
     }
 
     @PrePersist
@@ -211,6 +239,16 @@ public class Ticket {
 
     public User getAssignedAgent() {
         return assignedAgent;
+    }
+
+    public Long getAssignedAgentId() {
+        return assignedAgent == null
+                ? null
+                : assignedAgent.getId();
+    }
+
+    public String getEscalationReason() {
+        return escalationReason;
     }
 
     public boolean isSlaBreached() {
