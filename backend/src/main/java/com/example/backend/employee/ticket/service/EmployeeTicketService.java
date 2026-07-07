@@ -3,6 +3,7 @@ package com.example.backend.employee.ticket.service;
 import com.example.backend.common.model.TicketStatus;
 import com.example.backend.employee.ticket.dto.CreateTicketRequest;
 import com.example.backend.employee.ticket.dto.EmployeeTicketResponse;
+import com.example.backend.rabbitmq.TicketEventPublisher;
 import com.example.backend.security.CurrentUserService;
 import com.example.backend.ticket.model.Ticket;
 import com.example.backend.ticket.repository.TicketRepository;
@@ -22,8 +23,12 @@ import java.util.List;
 public class EmployeeTicketService {
 
     private final TicketRepository ticketRepository;
+
     private final CurrentUserService currentUserService;
+
     private final TicketNumberGenerator ticketNumberGenerator;
+
+    private final TicketEventPublisher ticketEventPublisher;
 
     @Transactional
     public EmployeeTicketResponse create(
@@ -42,7 +47,13 @@ public class EmployeeTicketService {
                 employee
         );
 
-        Ticket savedTicket = ticketRepository.save(ticket);
+        Ticket savedTicket =
+                ticketRepository.save(ticket);
+
+        ticketEventPublisher.publishTicketCreated(
+                savedTicket,
+                employee.getId()
+        );
 
         return toResponse(savedTicket);
     }
@@ -104,9 +115,24 @@ public class EmployeeTicketService {
             );
         }
 
+        TicketStatus previousStatus =
+                ticket.getStatus();
+
         ticket.changeStatus(TicketStatus.CLOSED);
 
-        Ticket savedTicket = ticketRepository.save(ticket);
+        Ticket savedTicket =
+                ticketRepository.save(ticket);
+        Long recipientUserId =
+                savedTicket.getAssignedAgent() == null
+                        ? null
+                        : savedTicket.getAssignedAgent().getId();
+
+        ticketEventPublisher.publishStatusChanged(
+                savedTicket,
+                employee.getId(),
+                recipientUserId,
+                previousStatus
+        );
 
         return toResponse(savedTicket);
     }
@@ -116,7 +142,10 @@ public class EmployeeTicketService {
             Long employeeId
     ) {
         return ticketRepository
-                .findByIdAndCreatedById(ticketId, employeeId)
+                .findByIdAndCreatedById(
+                        ticketId,
+                        employeeId
+                )
                 .orElseThrow(() ->
                         new ResponseStatusException(
                                 HttpStatus.NOT_FOUND,
@@ -125,7 +154,9 @@ public class EmployeeTicketService {
                 );
     }
 
-    private EmployeeTicketResponse toResponse(Ticket ticket) {
+    private EmployeeTicketResponse toResponse(
+            Ticket ticket
+    ) {
         return new EmployeeTicketResponse(
                 ticket.getId(),
                 ticket.getTicketNumber(),

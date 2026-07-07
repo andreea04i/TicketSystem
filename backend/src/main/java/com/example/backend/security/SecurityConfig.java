@@ -106,6 +106,9 @@ public class SecurityConfig {
                         .requestMatchers("/api/users/me")
                         .authenticated()
 
+                        .requestMatchers("/api/notifications/**")
+                        .authenticated()
+
                         .anyRequest()
                         .authenticated()
                 )
