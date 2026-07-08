@@ -5,19 +5,22 @@ import java.util.List;
 import java.util.Map;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.example.backend.common.model.TicketPriority;
 import com.example.backend.common.model.TicketStatus;
+import com.example.backend.rabbitmq.TicketEventPublisher;
+import com.example.backend.security.CurrentUserService;
+import com.example.backend.ticket.dto.AgentTicketDetailsResponse;
 import com.example.backend.ticket.dto.AgentTicketResponse;
 import com.example.backend.ticket.model.Ticket;
 import com.example.backend.ticket.repository.TicketRepository;
 import com.example.backend.user.model.Role;
 import com.example.backend.user.model.User;
 import com.example.backend.user.repository.UserRepository;
-import com.example.backend.ticket.dto.AgentTicketDetailsResponse;
 
 @Service
 @Transactional(readOnly = true)
@@ -38,13 +41,19 @@ public class AgentTicketService {
 
     private final TicketRepository ticketRepository;
     private final UserRepository userRepository;
+    private final CurrentUserService currentUserService;
+    private final TicketEventPublisher ticketEventPublisher;
 
     public AgentTicketService(
         TicketRepository ticketRepository,
-        UserRepository userRepository
+        UserRepository userRepository,
+        CurrentUserService currentUserService,
+        TicketEventPublisher ticketEventPublisher
         ) {
         this.ticketRepository = ticketRepository;
         this.userRepository = userRepository;
+        this.currentUserService = currentUserService;
+        this.ticketEventPublisher = ticketEventPublisher;
         }
 
     public List<AgentTicketResponse> getActiveTickets() {
@@ -73,8 +82,10 @@ public class AgentTicketService {
     @Transactional
     public AgentTicketResponse assignTicket( 
         Long ticketId,
-        Long agentId
+        Long agentId,
+        Authentication authentication
     ) {
+        User actor = currentUserService.getCurrentUser(authentication);
         Ticket ticket = getTicketOrThrow(ticketId);
 
         if (
@@ -108,14 +119,23 @@ public class AgentTicketService {
         ticket.assignTo(agent);
         Ticket savedTicket = ticketRepository.save(ticket);
 
+        ticketEventPublisher.publishTicketAssigned(
+                savedTicket,
+                actor.getId(),
+                agent.getId()
+        );
+
         return toResponse(savedTicket);
     }
 
     @Transactional
     public AgentTicketResponse changeStatus(
         Long ticketId,
-        TicketStatus newStatus
+        TicketStatus newStatus,
+        Authentication authentication
     ) {
+        User actor = currentUserService.getCurrentUser(authentication);
+
         Ticket ticket = getTicketOrThrow(ticketId);
 
         if (newStatus == TicketStatus.ESCALATED) {
@@ -124,9 +144,19 @@ public class AgentTicketService {
                         "Pentru escaladare trebuie completat si motivul"
                 );
         }
+        TicketStatus previousStatus = ticket.getStatus();
 
         ticket.changeStatus(newStatus);
         Ticket savedTicket = ticketRepository.save(ticket);
+
+        if (previousStatus != newStatus){
+                ticketEventPublisher.publishStatusChanged(
+                        savedTicket,
+                        actor.getId(),
+                        savedTicket.getCreatedBy().getId(),
+                        previousStatus
+                );
+        }
 
         return toResponse(savedTicket);
     }
@@ -134,8 +164,11 @@ public class AgentTicketService {
     @Transactional
     public AgentTicketResponse escalateTicket (
         Long ticketId,
-        String reason
+        String reason,
+        Authentication authentication
     ) {
+        User actor = currentUserService.getCurrentUser(authentication);
+
         Ticket ticket = getTicketOrThrow(ticketId);
 
         if (
@@ -151,6 +184,12 @@ public class AgentTicketService {
         ticket.escalate(reason.trim());
         Ticket savedTicket = ticketRepository.save(ticket);
 
+        ticketEventPublisher.publishTicketEscalated(
+                savedTicket,
+                actor.getId(),
+                savedTicket.getCreatedBy().getId()
+        );
+        
         return toResponse(savedTicket);
     }
 
