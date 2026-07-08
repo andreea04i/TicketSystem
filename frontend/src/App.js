@@ -1,7 +1,10 @@
 import { useState } from "react";
+import NotificationCenter from "./components/notifications/NotificationCenter";
 import SlaConfigPage from "./features/admin/sla/SlaConfigPage";
 import AgentDashboard from "./pages/AgentDashboard";
 import TicketDetailsPage from "./pages/TicketDetailsPage";
+
+import "./App.css";
 
 function App() {
     const [currentPage, setCurrentPage] = useState("agent");
@@ -24,14 +27,26 @@ function App() {
 
     return (
         <div>
-            <nav>
-                <button onClick={showAgentDashboard}>
-                    Agent Dashboard
-                </button>
+            <nav className="app-navbar">
+                <div className="app-navbar-links">
+                    <button
+                        type="button"
+                        onClick={showAgentDashboard}
+                    >
+                        Agent Dashboard
+                    </button>
 
-                <button onClick={showSlaConfig}>
-                    Configurare SLA
-                </button>
+                    <button
+                        type="button"
+                        onClick={showSlaConfig}
+                    >
+                        Configurare SLA
+                    </button>
+                </div>
+
+                <NotificationCenter
+                    onOpenTicket={showTicketDetails}
+                />
             </nav>
 
             {currentPage === "agent" && (

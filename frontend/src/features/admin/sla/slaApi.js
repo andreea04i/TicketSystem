@@ -15,7 +15,7 @@ function createHeaders() {
 
 async function handleResponse(response) {
     if (!response.ok) {
-        let message = `Crearea a esuat cu statusul ${response.status}`;
+        let message = `Cererea a esuat cu statusul ${response.status}`;
         try {
             const errorBody = await response.json();
             message = errorBody.detail || errorBody.message || message;

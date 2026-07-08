@@ -2,6 +2,7 @@ package com.example.backend.ticket.controller;
 
 import java.util.List;
 
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -10,12 +11,12 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.example.backend.ticket.dto.AgentTicketDetailsResponse;
 import com.example.backend.ticket.dto.AgentTicketResponse;
 import com.example.backend.ticket.dto.AssignTicketRequest;
 import com.example.backend.ticket.dto.ChangeTicketStatusRequest;
 import com.example.backend.ticket.dto.EscalateTicketRequest;
 import com.example.backend.ticket.service.AgentTicketService;
-import com.example.backend.ticket.dto.AgentTicketDetailsResponse;
 
 import jakarta.validation.Valid;
 
@@ -44,33 +45,36 @@ public class AgentTicketController {
     @PutMapping("/{ticketId}/assign")
     public AgentTicketResponse assignTicket(
         @PathVariable Long ticketId,
-        @Valid @RequestBody AssignTicketRequest request
+        @Valid @RequestBody AssignTicketRequest request, Authentication authentication
     ) {
         return agentTicketService.assignTicket(
             ticketId,
-            request.agentId()
+            request.agentId(),
+            authentication
         );
     }
 
     @PutMapping("/{ticketId}/status")
     public AgentTicketResponse changeStatus(
         @PathVariable Long ticketId,
-        @Valid @RequestBody ChangeTicketStatusRequest request
+        @Valid @RequestBody ChangeTicketStatusRequest request, Authentication authentication
     ) {
         return agentTicketService.changeStatus(
             ticketId, 
-            request.status()
+            request.status(),
+            authentication
         );
     }
 
     @PutMapping("/{ticketId}/escalate")
     public AgentTicketResponse escalateTicket(
         @PathVariable Long ticketId,
-        @Valid @RequestBody EscalateTicketRequest request
+        @Valid @RequestBody EscalateTicketRequest request, Authentication authentication
     ) {
         return agentTicketService.escalateTicket(
             ticketId, 
-            request.reason()
+            request.reason(),
+            authentication
         );
     }
 }
