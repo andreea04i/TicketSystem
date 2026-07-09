@@ -5,11 +5,16 @@ import {
 } from "react";
 
 import {
-    assignTicket,
+    claimTicket,
     changeTicketStatus,
     escalateTicket,
     getAgentTicketDetails,
 } from "../api/agentTicketsApi";
+
+import {
+    addAgentMessage,
+    getAgentMessages,
+} from "../api/agentMessagesApi";
 
 import "./TicketDetailsPage.css";
 
@@ -35,6 +40,10 @@ function TicketDetailsPage({ ticketId, onBack }) {
     const [loading, setLoading] = useState(true);
     const [actionLoading, setActionLoading] = useState(false);
     const [error, setError] = useState("");
+    const [messages, setMessages] = useState([]);
+const [messageContent, setMessageContent] = useState("");
+const [messageInternal, setMessageInternal] = useState(false);
+const [messageSubmitting, setMessageSubmitting] = useState(false);
 
     const currentAgentId = Number(
         localStorage.getItem("userId")
@@ -49,10 +58,14 @@ function TicketDetailsPage({ ticketId, onBack }) {
 
                 setError("");
 
-                const data =
-                    await getAgentTicketDetails(ticketId);
+                const [ticketData, messagesData] =
+                await Promise.all([
+                    getAgentTicketDetails(ticketId),
+                    getAgentMessages(ticketId),
+                ]);
 
-                setTicket(data);
+            setTicket(ticketData);
+            setMessages(messagesData);
             } catch (requestError) {
                 setError(requestError.message);
             } finally {
@@ -69,21 +82,11 @@ function TicketDetailsPage({ ticketId, onBack }) {
     }, [loadTicket]);
 
     async function handleAssign() {
-        if (!currentAgentId) {
-            setError(
-                "ID-ul agentului autentificat nu este disponibil."
-            );
-            return;
-        }
-
         try {
             setActionLoading(true);
             setError("");
 
-            await assignTicket(
-                ticketId,
-                currentAgentId
-            );
+            await claimTicket(ticketId);
 
             await loadTicket(false);
         } catch (requestError) {
@@ -145,6 +148,38 @@ function TicketDetailsPage({ ticketId, onBack }) {
             setError(requestError.message);
         } finally {
             setActionLoading(false);
+        }
+    }
+
+    async function handleAddMessage(event) {
+        event.preventDefault();
+
+        if (!messageContent.trim()) {
+            setError("Mesajul nu poate fi gol.");
+            return;
+        }
+
+        try {
+            setMessageSubmitting(true);
+            setError("");
+
+            const savedMessage = await addAgentMessage(
+                ticketId,
+                messageContent.trim(),
+                messageInternal
+            );
+
+            setMessages((currentMessages) => [
+                ...currentMessages,
+                savedMessage,
+            ]);
+
+            setMessageContent("");
+            setMessageInternal(false);
+        } catch (requestError) {
+            setError(requestError.message);
+        } finally {
+            setMessageSubmitting(false);
         }
     }
 
@@ -434,6 +469,82 @@ function TicketDetailsPage({ ticketId, onBack }) {
                         </div>
                     </dl>
                 </article>
+            </section>
+
+            <section className="ticket-details-card messages-card">
+                <h2>Conversația tichetului</h2>
+
+                <form
+                    className="message-form"
+                    onSubmit={handleAddMessage}
+                >
+                    <textarea
+                        value={messageContent}
+                        onChange={(event) =>
+                            setMessageContent(event.target.value)
+                        }
+                        placeholder="Scrie un mesaj..."
+                        rows={4}
+                        disabled={messageSubmitting}
+                    />
+
+                    <label className="message-internal-toggle">
+                        <input
+                            type="checkbox"
+                            checked={messageInternal}
+                            onChange={(event) =>
+                                setMessageInternal(event.target.checked)
+                            }
+                            disabled={messageSubmitting}
+                        />
+
+                        Mesaj intern — vizibil doar pentru agent/admin
+                    </label>
+
+                    <button
+                        type="submit"
+                        disabled={messageSubmitting}
+                    >
+                        {messageSubmitting
+                            ? "Se trimite..."
+                            : "Adaugă mesaj"}
+                    </button>
+                </form>
+
+                <div className="messages-list">
+                    {messages.length === 0 ? (
+                        <p className="empty-messages">
+                            Nu există mesaje încă.
+                        </p>
+                    ) : (
+                        messages.map((message) => (
+                            <article
+                                key={message.id}
+                                className={
+                                    message.internal
+                                        ? "message-item message-item-internal"
+                                        : "message-item"
+                                }
+                            >
+                                <div className="message-header">
+                                    <strong>{message.authorName}</strong>
+
+                                    <span>
+                                        {formatDate(message.createdAt)}
+                                    </span>
+                                </div>
+
+                                {message.internal && (
+                                    <span className="message-internal-badge">
+                                        Intern
+                                    </span>
+                                )}
+
+                                <p>{message.content}</p>
+                            </article>
+                        ))
+                    )}
+                </div>
             </section>
 
             {ticket.escalationReason && (

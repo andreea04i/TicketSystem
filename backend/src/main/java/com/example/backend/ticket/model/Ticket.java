@@ -255,6 +255,10 @@ public class Ticket {
         return slaBreached;
     }
 
+    public void markSlaBreached() {
+        this.slaBreached = true;
+    }
+
     public Instant getCreatedAt() {
         return createdAt;
     }
