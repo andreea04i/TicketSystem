@@ -3,6 +3,7 @@ import NotificationCenter from "./components/notifications/NotificationCenter";
 import SlaConfigPage from "./features/admin/sla/SlaConfigPage";
 import AgentDashboard from "./pages/AgentDashboard";
 import TicketDetailsPage from "./pages/TicketDetailsPage";
+import AdminReportsPage from "./features/admin/reports/AdminReportsPage";
 
 import "./App.css";
 
@@ -25,6 +26,11 @@ function App() {
             setCurrentPage("sla");
         }
 
+        function showAdminReports() {
+            setSelectedTicketId(null);
+            setCurrentPage("reports");
+        }
+
     return (
         <div>
             <nav className="app-navbar">
@@ -41,6 +47,13 @@ function App() {
                         onClick={showSlaConfig}
                     >
                         Configurare SLA
+                    </button>
+
+                    <button
+                        type="button"
+                        onClick={showAdminReports}
+                    >
+                        Rapoarte admin
                     </button>
                 </div>
 
@@ -65,6 +78,10 @@ function App() {
 
             {currentPage === "sla" && (
                 <SlaConfigPage />
+            )}
+
+            {currentPage === "reports" && (
+                <AdminReportsPage />
             )}
         </div>
     );

@@ -1,7 +1,6 @@
 const AGENT_TICKETS_URL =
     "http://localhost:8080/api/agent/tickets";
 
-
 function getAccessToken() {
     const token = localStorage.getItem("accessToken");
 
@@ -39,7 +38,7 @@ async function handleResponse(response) {
                 errorData.error ||
                 message;
         } catch {
-            // Raspunsul nu contine JSON
+            // Raspunsul nu contine JSON.
         }
 
         throw new Error(message);
@@ -49,7 +48,12 @@ async function handleResponse(response) {
 }
 
 export async function getAgentTickets() {
-    const response = await fetch(AGENT_TICKETS_URL, { headers: createHeaders(),});
+    const response = await fetch(
+        AGENT_TICKETS_URL,
+        {
+            headers: createHeaders(),
+        }
+    );
 
     return handleResponse(response);
 }
@@ -57,17 +61,31 @@ export async function getAgentTickets() {
 export async function getAgentTicketDetails(ticketId) {
     const response = await fetch(
         `${AGENT_TICKETS_URL}/${ticketId}`,
-        { headers: createHeaders(),}
+        {
+            headers: createHeaders(),
+        }
+    );
+
+    return handleResponse(response);
+}
+
+export async function claimTicket(ticketId) {
+    const response = await fetch(
+        `${AGENT_TICKETS_URL}/${ticketId}/claim`,
+        {
+            method: "PATCH",
+            headers: createHeaders(),
+        }
     );
 
     return handleResponse(response);
 }
 
 export async function assignTicket(ticketId, agentId) {
-    const response = await fetch (
+    const response = await fetch(
         `${AGENT_TICKETS_URL}/${ticketId}/assign`,
         {
-            method: "PUT",
+            method: "PATCH",
             headers: createHeaders(true),
             body: JSON.stringify({
                 agentId,
@@ -82,7 +100,7 @@ export async function changeTicketStatus(ticketId, status) {
     const response = await fetch(
         `${AGENT_TICKETS_URL}/${ticketId}/status`,
         {
-            method: "PUT",
+            method: "PATCH",
             headers: createHeaders(true),
             body: JSON.stringify({
                 status,
@@ -97,7 +115,7 @@ export async function escalateTicket(ticketId, reason) {
     const response = await fetch(
         `${AGENT_TICKETS_URL}/${ticketId}/escalate`,
         {
-            method: "PUT",
+            method: "POST",
             headers: createHeaders(true),
             body: JSON.stringify({
                 reason,

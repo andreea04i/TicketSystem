@@ -27,6 +27,6 @@ public final class RabbitMqConstants {
             "ticket.escalated";
 
     private RabbitMqConstants() {
-        // Clasa conține numai constante.
+        
     }
 }

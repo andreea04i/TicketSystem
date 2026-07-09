@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import {
-    assignTicket,
+    claimTicket,
     changeTicketStatus,
     escalateTicket,
     getAgentTickets,
@@ -61,12 +61,9 @@ function AgentDashboard({ onOpenTicket})
             setError("");
             setActionTicketId(ticketId);
 
-            const updateTicket = await assignTicket(
-                ticketId,
-                CURRENT_AGENT_ID
-            );
+            const updatedTicket = await claimTicket(ticketId);
 
-            updateTicketInList(updateTicket);
+            updateTicketInList(updatedTicket);
         } catch (requestError) {
             setError(requestError.message);
         } finally {
