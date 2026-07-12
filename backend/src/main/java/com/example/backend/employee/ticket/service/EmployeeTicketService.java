@@ -5,6 +5,8 @@ import com.example.backend.employee.ticket.dto.CreateTicketRequest;
 import com.example.backend.employee.ticket.dto.EmployeeTicketResponse;
 import com.example.backend.rabbitmq.TicketEventPublisher;
 import com.example.backend.security.CurrentUserService;
+import com.example.backend.ticket.history.TicketHistory;
+import com.example.backend.ticket.history.TicketHistoryRepository;
 import com.example.backend.ticket.model.Ticket;
 import com.example.backend.ticket.repository.TicketRepository;
 import com.example.backend.user.model.User;
@@ -29,6 +31,8 @@ public class EmployeeTicketService {
     private final TicketNumberGenerator ticketNumberGenerator;
 
     private final TicketEventPublisher ticketEventPublisher;
+
+    private final TicketHistoryRepository ticketHistoryRepository;
 
     @Transactional
     public EmployeeTicketResponse create(
@@ -122,6 +126,17 @@ public class EmployeeTicketService {
 
         Ticket savedTicket =
                 ticketRepository.save(ticket);
+
+        ticketHistoryRepository.save(
+                TicketHistory.create(
+                        savedTicket,
+                        employee,
+                        previousStatus,
+                        TicketStatus.CLOSED,
+                        "Tichet închis de angajat"
+                )
+        );
+
         Long recipientUserId =
                 savedTicket.getAssignedAgent() == null
                         ? null

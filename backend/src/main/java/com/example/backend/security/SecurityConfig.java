@@ -90,6 +90,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers(
                                 "/api/auth/**",
+                                "/api/docs/**",
                                 "/error"
                         )
                         .permitAll()

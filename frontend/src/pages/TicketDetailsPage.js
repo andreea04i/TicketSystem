@@ -45,10 +45,6 @@ const [messageContent, setMessageContent] = useState("");
 const [messageInternal, setMessageInternal] = useState(false);
 const [messageSubmitting, setMessageSubmitting] = useState(false);
 
-    const currentAgentId = Number(
-        localStorage.getItem("userId")
-    );
-
     const loadTicket = useCallback(
         async (showPageLoader = true) => {
             try {

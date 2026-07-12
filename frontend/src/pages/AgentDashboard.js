@@ -9,7 +9,6 @@ import "./AgentDashboard.css";
 
 function AgentDashboard({ onOpenTicket})
 {
-    const CURRENT_AGENT_ID = Number( localStorage.getItem("userId"));
     const [tickets, setTickets] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
