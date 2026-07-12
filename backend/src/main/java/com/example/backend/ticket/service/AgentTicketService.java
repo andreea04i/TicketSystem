@@ -193,6 +193,8 @@ public class AgentTicketService {
         User actor = currentUserService.getCurrentUser(authentication);
         Ticket ticket = getTicketOrThrow(ticketId);
 
+        ensureAgentOrAdmin(actor);
+
         if (newStatus == TicketStatus.ESCALATED) {
             throw new ResponseStatusException(
                     HttpStatus.BAD_REQUEST,
@@ -237,6 +239,8 @@ public class AgentTicketService {
     ) {
         User actor = currentUserService.getCurrentUser(authentication);
         Ticket ticket = getTicketOrThrow(ticketId);
+
+        ensureAgentOrAdmin(actor);
 
         TicketStatus previousStatus = ticket.getStatus();
 

@@ -1,10 +1,35 @@
-import { render, screen } from '@testing-library/react';
-import App from './App';
+import { render, screen } from "@testing-library/react";
+import App from "./App";
 
-test('renders agent dashboard navigation', () => {
-  render(<App />);
+beforeEach(() => {
+    localStorage.setItem("accessToken", "test-token");
 
-  const navigationButton = screen.getByText(/agent dashboard/i);
+    global.fetch = jest.fn((url) => {
+        if (url.toString().includes("/unread-count")) {
+            return Promise.resolve({
+                ok: true,
+                json: () => Promise.resolve({ unreadCount: 0 }),
+            });
+        }
 
-  expect(navigationButton).toBeInTheDocument();
+        return Promise.resolve({
+            ok: true,
+            json: () => Promise.resolve([]),
+        });
+    });
+});
+
+afterEach(() => {
+    localStorage.clear();
+    jest.restoreAllMocks();
+});
+
+test("renders agent dashboard navigation", async () => {
+    render(<App />);
+
+    const navigationButton = screen.getByText(/agent dashboard/i);
+
+    expect(navigationButton).toBeInTheDocument();
+    expect(await screen.findByText(/0 din 0 tichete active/i))
+            .toBeInTheDocument();
 });
